@@ -1,17 +1,17 @@
 /*
-   Copyright 2018 the original author or authors
+Copyright 2018 the original author or authors
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 package ibbq
 
@@ -89,7 +89,15 @@ func (ibbq *Ibbq) Connect() error {
 	logger.Info("Connecting to device")
 	go func() {
 		ibbq.updateStatus(Connecting)
-		if client, err = ble.Connect(timeoutContext, filter()); err == nil {
+
+		addr, err := scan(timeoutContext, filter())
+
+		if addr == nil {
+			_ = logger.Error("Could not find an iBBQ device")
+			err = errors.New("No IBBQ devices found")
+		}
+
+		if client, err = ble.Dial(timeoutContext, addr); err == nil {
 			logger.Info("Connected to device", "addr", client.Addr())
 			ibbq.client = client
 			logger.Debug("Setting up disconnect handler")
@@ -136,6 +144,25 @@ func (ibbq *Ibbq) Connect() error {
 		}
 	}
 	return err
+}
+
+func scan(ctx context.Context, filter ble.AdvFilter) (ble.Addr, error) {
+	ctx2, cancel := context.WithCancel(ctx)
+
+	var addr ble.Addr
+	handler := func(a ble.Advertisement) {
+		addr = a.Addr()
+		ctx2.Done()
+		cancel()
+	}
+
+	err := ble.Scan(ctx2, false, handler, filter)
+
+	if errors.Is(err, context.Canceled) {
+		return addr, err
+	}
+
+	return nil, err
 }
 
 func (ibbq *Ibbq) discoverProfile() error {
