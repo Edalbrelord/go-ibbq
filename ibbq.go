@@ -162,7 +162,7 @@ func scan(ctx context.Context, filter ble.AdvFilter) (ble.Addr, error) {
 	err := ble.Scan(ctx2, false, handler, filter)
 
 	if errors.Is(err, context.Canceled) {
-		return addr, err
+		return addr, nil
 	}
 
 	return nil, err
