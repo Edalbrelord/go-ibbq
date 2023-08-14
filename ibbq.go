@@ -95,9 +95,11 @@ func (ibbq *Ibbq) Connect() error {
 		if addr == nil {
 			_ = logger.Error("Could not find an iBBQ device")
 			err = errors.New("No IBBQ devices found")
+
 		}
 
-		if client, err = ble.Dial(timeoutContext, addr); err == nil {
+		if err == nil {
+			client, err = ble.Dial(timeoutContext, addr)
 			logger.Info("Connected to device", "addr", client.Addr())
 			ibbq.client = client
 			logger.Debug("Setting up disconnect handler")
@@ -105,6 +107,7 @@ func (ibbq *Ibbq) Connect() error {
 			logger.Debug("Setting up context closed handler")
 			go ibbq.handleContextClosed()
 			err = ibbq.discoverProfile()
+
 		}
 		if err == nil {
 			err = ibbq.login()
