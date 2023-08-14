@@ -1,4 +1,4 @@
-module github.com/edalbrelord/go-ibbq/examples/datalogger
+module github.com/Edalbrelord/go-ibbq/examples/datalogger
 
 go 1.12
 
