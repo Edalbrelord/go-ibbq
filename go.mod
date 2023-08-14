@@ -1,4 +1,4 @@
-module github.com/sworisbreathing/go-ibbq/v2
+module github.com/Edalbrelord/go-ibbq/v2
 
 go 1.12
 
